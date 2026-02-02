@@ -1,0 +1,998 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multi-Account Expense Tracker</title>
+    <!-- Using Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Using FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --primary-color: #4f46e5;
+            --primary-hover: #4338ca;
+            --success-color: #10b981;
+            --danger-color: #ef4444;
+            --text-dark: #1f2937;
+            --text-gray: #6b7280;
+            --bg-light: #f3f4f6;
+            --card-bg: #ffffff;
+            --border-radius: 12px;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-light);
+            color: var(--text-dark);
+            line-height: 1.5;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header */
+        header {
+            background-color: var(--card-bg);
+            padding: 1rem 2rem;
+            box-shadow: var(--shadow);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Main Layout */
+        main {
+            flex: 1;
+            max-width: 1200px;
+            margin: 2rem auto;
+            width: 100%;
+            padding: 0 1rem;
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 2rem;
+        }
+
+        @media (max-width: 768px) {
+            main {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Sidebar (Accounts) */
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            padding: 1.5rem;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+
+        .btn-icon {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--text-gray);
+            font-size: 1rem;
+            transition: var(--transition);
+        }
+
+        .btn-icon:hover {
+            color: var(--primary-color);
+        }
+
+        /* Account List */
+        .account-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .account-item {
+            padding: 0.75rem;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+        }
+
+        .account-item:hover {
+            border-color: var(--primary-color);
+            background-color: #f9fafb;
+        }
+
+        .account-item.active {
+            border-color: var(--primary-color);
+            background-color: #eef2ff;
+            color: var(--primary-color);
+        }
+
+        .account-info h4 {
+            font-size: 0.95rem;
+            font-weight: 600;
+        }
+
+        .account-info span {
+            font-size: 0.8rem;
+            color: var(--text-gray);
+        }
+
+        .account-balance {
+            font-weight: 700;
+            font-size: 0.95rem;
+        }
+
+        .delete-account-btn {
+            opacity: 0;
+            background: none;
+            border: none;
+            color: var(--danger-color);
+            cursor: pointer;
+            margin-left: 10px;
+            transition: opacity 0.2s;
+        }
+
+        .account-item:hover .delete-account-btn {
+            opacity: 1;
+        }
+
+        .add-account-btn {
+            width: 100%;
+            padding: 0.75rem;
+            background-color: transparent;
+            border: 2px dashed #d1d5db;
+            border-radius: 8px;
+            color: var(--text-gray);
+            cursor: pointer;
+            font-weight: 500;
+            transition: var(--transition);
+        }
+
+        .add-account-btn:hover {
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+        }
+
+        /* Dashboard Area */
+        .dashboard {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        /* Summary Cards */
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .summary-card {
+            padding: 1.25rem;
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .summary-label {
+            font-size: 0.85rem;
+            color: var(--text-gray);
+            font-weight: 500;
+        }
+
+        .summary-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .text-success { color: var(--success-color); }
+        .text-danger { color: var(--danger-color); }
+
+        /* Transaction Form */
+        .transaction-form {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr auto;
+            gap: 1rem;
+            align-items: end;
+        }
+
+        @media (max-width: 600px) {
+            .transaction-form {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        label {
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--text-gray);
+        }
+
+        input, select {
+            padding: 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 0.95rem;
+            transition: var(--transition);
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            height: 42px; /* Align with inputs */
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .transaction-type-toggle {
+            display: flex;
+            background: #e5e7eb;
+            padding: 4px;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            width: fit-content;
+        }
+
+        .type-btn {
+            padding: 6px 16px;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            border-radius: 6px;
+            font-weight: 500;
+            font-size: 0.9rem;
+            transition: var(--transition);
+        }
+
+        .type-btn.active.inc {
+            background: white;
+            color: var(--success-color);
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+
+        .type-btn.active.exp {
+            background: white;
+            color: var(--danger-color);
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+
+        /* Transaction History */
+        .transaction-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            max-height: 500px;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+
+        .transaction-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem;
+            background: #fff;
+            border: 1px solid #f3f4f6;
+            border-radius: 8px;
+            transition: var(--transition);
+        }
+
+        .transaction-item:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+
+        .t-left {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .t-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+        }
+
+        .t-icon.income { background-color: #d1fae5; color: var(--success-color); }
+        .t-icon.expense { background-color: #fee2e2; color: var(--danger-color); }
+
+        .t-details h4 {
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        .t-details span {
+            font-size: 0.8rem;
+            color: var(--text-gray);
+        }
+
+        .t-right {
+            text-align: right;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .t-amount {
+            font-weight: 700;
+            font-size: 1rem;
+        }
+
+        .t-delete {
+            color: var(--text-gray);
+            background: none;
+            border: none;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .t-delete:hover {
+            color: var(--danger-color);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-gray);
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.open {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 2rem;
+            border-radius: var(--border-radius);
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .modal-title {
+            margin-bottom: 1.5rem;
+            font-size: 1.25rem;
+            color: var(--text-dark);
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .btn-secondary {
+            background: #e5e7eb;
+            color: var(--text-dark);
+            border: none;
+            padding: 0.6rem 1.2rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        /* Toast Notification */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--text-dark);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 2000;
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="header-content">
+            <div class="logo">
+                <i class="fa-solid fa-wallet"></i> PennyWise
+            </div>
+            <div class="user-profile">
+                <span style="color: var(--text-gray); font-size: 0.9rem;">Welcome back!</span>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <!-- Sidebar: Account Management -->
+        <aside class="sidebar">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">My Accounts</h3>
+                    <button class="btn-icon" onclick="openModal()" title="Add Account">
+                        <i class="fa-solid fa-plus-circle"></i>
+                    </button>
+                </div>
+                <ul class="account-list" id="accountList">
+                    <!-- Accounts injected via JS -->
+                </ul>
+                <button class="add-account-btn" onclick="openModal()">+ Add New Account</button>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Quick Stats</h3>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                    <div style="display: flex; justify-content: space-between; font-size: 0.9rem;">
+                        <span style="color: var(--text-gray);">Total Transactions</span>
+                        <span id="totalTransCount" style="font-weight: 600;">0</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; font-size: 0.9rem;">
+                        <span style="color: var(--text-gray);">Savings Rate</span>
+                        <span id="savingsRate" style="font-weight: 600;">0%</span>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Dashboard -->
+        <section class="dashboard">
+            
+            <!-- Summary Cards -->
+            <div class="summary-grid">
+                <div class="summary-card">
+                    <span class="summary-label">Current Balance</span>
+                    <span class="summary-value" id="currentBalance">$0.00</span>
+                </div>
+                <div class="summary-card">
+                    <span class="summary-label">Total Income</span>
+                    <span class="summary-value text-success" id="totalIncome">$0.00</span>
+                </div>
+                <div class="summary-card">
+                    <span class="summary-label">Total Expenses</span>
+                    <span class="summary-value text-danger" id="totalExpense">$0.00</span>
+                </div>
+            </div>
+
+            <!-- Add Transaction Form -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Add Transaction</h3>
+                </div>
+                
+                <div class="transaction-type-toggle">
+                    <button class="type-btn active exp" id="btnExpense" onclick="setTransactionType('expense')">Expense</button>
+                    <button class="type-btn" id="btnIncome" onclick="setTransactionType('income')">Income</button>
+                </div>
+
+                <form id="transactionForm" class="transaction-form" onsubmit="handleTransactionSubmit(event)">
+                    <div class="form-group">
+                        <label>Description</label>
+                        <input type="text" id="tDescription" placeholder="e.g. Grocery, Salary" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Amount</label>
+                        <input type="number" id="tAmount" placeholder="0.00" step="0.01" min="0.01" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Category</label>
+                        <select id="tCategory">
+                            <!-- Populated based on type -->
+                        </select>
+                    </div>
+                    <button type="submit" class="btn-primary">Add</button>
+                </form>
+            </div>
+
+            <!-- Recent Transactions -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Recent History</h3>
+                    <div style="font-size: 0.85rem; color: var(--text-gray);">
+                        Account: <strong id="currentAccountName">All</strong>
+                    </div>
+                </div>
+                <ul class="transaction-list" id="transactionList">
+                    <!-- Transactions injected via JS -->
+                    <li class="empty-state">No transactions yet.</li>
+                </ul>
+            </div>
+        </section>
+    </main>
+
+    <!-- Modal for Adding Account -->
+    <div id="accountModal" class="modal">
+        <div class="modal-content">
+            <h3 class="modal-title">Create New Account</h3>
+            <form onsubmit="handleAddAccount(event)">
+                <div class="form-group" style="margin-bottom: 1rem;">
+                    <label>Account Name</label>
+                    <input type="text" id="accName" placeholder="e.g. Main Bank, Wallet" required>
+                </div>
+                <div class="form-group" style="margin-bottom: 1rem;">
+                    <label>Initial Balance</label>
+                    <input type="number" id="accBalance" placeholder="0.00" step="0.01" value="0">
+                </div>
+                <div class="form-group" style="margin-bottom: 1rem;">
+                    <label>Account Type (Icon)</label>
+                    <select id="accIcon">
+                        <option value="wallet">Wallet</option>
+                        <option value="credit-card">Credit Card</option>
+                        <option value="building-columns">Bank</option>
+                        <option value="piggy-bank">Savings</option>
+                        <option value="cash-coins">Cash</option>
+                    </select>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn-secondary" onclick="closeModal()">Cancel</button>
+                    <button type="submit" class="btn-primary">Create Account</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast">Action Successful</div>
+
+    <script>
+        // --- State Management ---
+        let state = {
+            accounts: [],
+            transactions: [],
+            activeAccountId: null,
+            transactionType: 'expense'
+        };
+
+        // --- UPDATED CATEGORIES AS REQUESTED ---
+        // Expenses: Food, Drink, Travel, Utilities, Milk
+        const expenseCategories = ['Food', 'Drink', 'Travel', 'Utilities', 'Milk'];
+        
+        // Income: Salary, Investment
+        const incomeCategories = ['Salary', 'Investment'];
+
+        // --- Init ---
+        document.addEventListener('DOMContentLoaded', () => {
+            loadData();
+            updateCategoryOptions();
+            renderApp();
+            
+            // If no accounts exist, suggest creating one
+            if (state.accounts.length === 0) {
+                createAccount('Cash Wallet', 0, 'wallet');
+            } else {
+                // Select first account by default if none selected
+                if (!state.activeAccountId) {
+                    state.activeAccountId = state.accounts[0].id;
+                }
+            }
+            renderApp();
+        });
+
+        // --- Core Logic ---
+
+        function createAccount(name, balance, iconType) {
+            const newAccount = {
+                id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+                name: name,
+                balance: parseFloat(balance),
+                icon: iconType
+            };
+            state.accounts.push(newAccount);
+            if(!state.activeAccountId) state.activeAccountId = newAccount.id;
+            saveData();
+            return newAccount;
+        }
+
+        function handleAddAccount(e) {
+            e.preventDefault();
+            const name = document.getElementById('accName').value;
+            const balance = document.getElementById('accBalance').value;
+            const icon = document.getElementById('accIcon').value;
+            
+            createAccount(name, balance, icon);
+            closeModal();
+            document.querySelector('form').reset(); // Reset modal form
+            showToast('Account created successfully');
+            renderApp();
+        }
+
+        function deleteAccount(e, id) {
+            e.stopPropagation(); // Prevent triggering account selection
+            if(!confirm('Are you sure? This will delete all transactions associated with this account.')) return;
+
+            state.accounts = state.accounts.filter(acc => acc.id !== id);
+            state.transactions = state.transactions.filter(t => t.accountId !== id);
+
+            if (state.activeAccountId === id) {
+                state.activeAccountId = state.accounts.length > 0 ? state.accounts[0].id : null;
+            }
+
+            saveData();
+            renderApp();
+            showToast('Account deleted');
+        }
+
+        function handleTransactionSubmit(e) {
+            e.preventDefault();
+            
+            if (!state.activeAccountId) {
+                showToast('Please create an account first');
+                return;
+            }
+
+            const description = document.getElementById('tDescription').value;
+            const amount = parseFloat(document.getElementById('tAmount').value);
+            const category = document.getElementById('tCategory').value;
+            const type = state.transactionType; // 'income' or 'expense'
+
+            const newTransaction = {
+                id: Date.now().toString(),
+                accountId: state.activeAccountId,
+                description,
+                amount,
+                category,
+                type,
+                date: new Date().toISOString()
+            };
+
+            state.transactions.unshift(newTransaction); // Add to beginning
+            
+            // Update Account Balance
+            const account = state.accounts.find(acc => acc.id === state.activeAccountId);
+            if (account) {
+                if (type === 'income') {
+                    account.balance += amount;
+                } else {
+                    account.balance -= amount;
+                }
+            }
+
+            saveData();
+            renderApp();
+            
+            // Reset form partially
+            document.getElementById('tDescription').value = '';
+            document.getElementById('tAmount').value = '';
+            showToast('Transaction added');
+        }
+
+        function deleteTransaction(id) {
+            const transaction = state.transactions.find(t => t.id === id);
+            if (!transaction) return;
+
+            // Revert account balance
+            const account = state.accounts.find(acc => acc.id === transaction.accountId);
+            if (account) {
+                if (transaction.type === 'income') {
+                    account.balance -= transaction.amount;
+                } else {
+                    account.balance += transaction.amount;
+                }
+            }
+
+            state.transactions = state.transactions.filter(t => t.id !== id);
+            saveData();
+            renderApp();
+            showToast('Transaction deleted');
+        }
+
+        function switchAccount(id) {
+            state.activeAccountId = id;
+            renderApp();
+        }
+
+        // --- UI Rendering ---
+
+        function renderApp() {
+            renderAccounts();
+            renderSummary();
+            renderTransactions();
+        }
+
+        function renderAccounts() {
+            const list = document.getElementById('accountList');
+            list.innerHTML = '';
+
+            state.accounts.forEach(acc => {
+                const li = document.createElement('li');
+                li.className = `account-item ${state.activeAccountId === acc.id ? 'active' : ''}`;
+                li.onclick = () => switchAccount(acc.id);
+                
+                // Format currency
+                const formattedBalance = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(acc.balance);
+
+                li.innerHTML = `
+                    <div style="display:flex; align-items:center;">
+                        <div style="margin-right: 10px; color: ${state.activeAccountId === acc.id ? 'var(--primary-color)' : '#9ca3af'}">
+                            <i class="fa-solid fa-${acc.icon}"></i>
+                        </div>
+                        <div class="account-info">
+                            <h4>${acc.name}</h4>
+                            <span>Account</span>
+                        </div>
+                    </div>
+                    <div style="display:flex; align-items:center;">
+                        <div class="account-balance">${formattedBalance}</div>
+                        <button class="delete-account-btn" onclick="deleteAccount(event, '${acc.id}')" title="Delete Account">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </div>
+                `;
+                list.appendChild(li);
+            });
+        }
+
+        function renderSummary() {
+            // Filter transactions for current account
+            const relevantTransactions = state.transactions.filter(t => t.accountId === state.activeAccountId);
+            
+            let income = 0;
+            let expense = 0;
+
+            relevantTransactions.forEach(t => {
+                if (t.type === 'income') income += t.amount;
+                else expense += t.amount;
+            });
+
+            const account = state.accounts.find(a => a.id === state.activeAccountId);
+            const balance = account ? account.balance : 0;
+
+            document.getElementById('currentBalance').textContent = formatCurrency(balance);
+            document.getElementById('totalIncome').textContent = '+' + formatCurrency(income);
+            document.getElementById('totalExpense').textContent = '-' + formatCurrency(expense);
+
+            // Quick stats (Global)
+            document.getElementById('totalTransCount').textContent = state.transactions.length;
+            const totalGlobalInc = state.transactions.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0);
+            const totalGlobalExp = state.transactions.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0);
+            const rate = totalGlobalInc > 0 ? ((totalGlobalInc - totalGlobalExp) / totalGlobalInc * 100).toFixed(1) : 0;
+            document.getElementById('savingsRate').textContent = rate + '%';
+            
+            // Update Header in Transaction List
+            const currentAcc = state.accounts.find(a => a.id === state.activeAccountId);
+            document.getElementById('currentAccountName').textContent = currentAcc ? currentAcc.name : 'None';
+        }
+
+        function renderTransactions() {
+            const list = document.getElementById('transactionList');
+            list.innerHTML = '';
+
+            const filtered = state.transactions.filter(t => t.accountId === state.activeAccountId);
+
+            if (filtered.length === 0) {
+                list.innerHTML = '<li class="empty-state">No transactions for this account yet.</li>';
+                return;
+            }
+
+            filtered.forEach(t => {
+                const li = document.createElement('li');
+                li.className = 'transaction-item';
+                
+                const isInc = t.type === 'income';
+                const sign = isInc ? '+' : '-';
+                const colorClass = isInc ? 'income' : 'expense';
+                const date = new Date(t.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+                
+                // --- UPDATED ICON MAPPING FOR NEW CATEGORIES ---
+                let icon = 'tag'; // Default
+                
+                // Expenses
+                if(t.category === 'Food') icon = 'utensils';
+                if(t.category === 'Drink') icon = 'martini-glass';
+                if(t.category === 'Travel') icon = 'plane';
+                if(t.category === 'Utilities') icon = 'bolt';
+                if(t.category === 'Milk') icon = 'bottle-water';
+                
+                // Income
+                if(t.category === 'Salary') icon = 'money-bill-wave';
+                if(t.category === 'Investment') icon = 'chart-line';
+
+                li.innerHTML = `
+                    <div class="t-left">
+                        <div class="t-icon ${colorClass}">
+                            <i class="fa-solid fa-${icon}"></i>
+                        </div>
+                        <div class="t-details">
+                            <h4>${t.description}</h4>
+                            <span>${t.category} • ${date}</span>
+                        </div>
+                    </div>
+                    <div class="t-right">
+                        <div class="t-amount ${isInc ? 'text-success' : 'text-danger'}">
+                            ${sign}${formatCurrency(t.amount)}
+                        </div>
+                        <button class="t-delete" onclick="deleteTransaction('${t.id}')" title="Delete">
+                            <i class="fa-solid fa-times"></i>
+                        </button>
+                    </div>
+                `;
+                list.appendChild(li);
+            });
+        }
+
+        // --- Helpers & Utilities ---
+
+        function setTransactionType(type) {
+            state.transactionType = type;
+            
+            const btnExp = document.getElementById('btnExpense');
+            const btnInc = document.getElementById('btnIncome');
+
+            if (type === 'expense') {
+                btnExp.classList.add('active', 'exp');
+                btnInc.classList.remove('active', 'inc');
+            } else {
+                btnInc.classList.add('active', 'inc');
+                btnExp.classList.remove('active', 'exp');
+            }
+            updateCategoryOptions();
+        }
+
+        function updateCategoryOptions() {
+            const select = document.getElementById('tCategory');
+            select.innerHTML = '';
+            
+            const cats = state.transactionType === 'expense' ? expenseCategories : incomeCategories;
+            
+            cats.forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c;
+                opt.textContent = c;
+                select.appendChild(opt);
+            });
+        }
+
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
+        }
+
+        function openModal() {
+            document.getElementById('accountModal').classList.add('open');
+        }
+
+        function closeModal() {
+            document.getElementById('accountModal').classList.remove('open');
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        // --- Data Persistence ---
+        function saveData() {
+            localStorage.setItem('expenseTrackerData', JSON.stringify({
+                accounts: state.accounts,
+                transactions: state.transactions,
+                activeAccountId: state.activeAccountId
+            }));
+        }
+
+        function loadData() {
+            const data = localStorage.getItem('expenseTrackerData');
+            if (data) {
+                const parsed = JSON.parse(data);
+                state.accounts = parsed.accounts || [];
+                state.transactions = parsed.transactions || [];
+                state.activeAccountId = parsed.activeAccountId || null;
+            }
+        }
+        
+        // Close modal if clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('accountModal');
+            if (event.target == modal) {
+                closeModal();
+            }
+        }
+    </script>
+</body>
+</html>
