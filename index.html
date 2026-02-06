@@ -647,9 +647,12 @@
             transactionType: 'expense'
         };
 
-        // --- UPDATED CATEGORIES AS REQUESTED ---
-        // Expenses: Food, Drink, Travel, Utilities, Milk
-        const expenseCategories = ['Food', 'Drink', 'Travel', 'Utilities', 'Milk'];
+        // --- UPDATED CATEGORIES ---
+        // Expenses: Original + New Categories
+        const expenseCategories = [
+            'Food', 'Drink', 'Travel', 'Utilities', 'Milk',
+            'Recharge', 'Petrol', 'Medicine', 'Medical', 'Daily Needs'
+        ];
         
         // Income: Salary, Investment
         const incomeCategories = ['Salary', 'Investment'];
@@ -877,15 +880,22 @@
                 const colorClass = isInc ? 'income' : 'expense';
                 const date = new Date(t.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
                 
-                // --- UPDATED ICON MAPPING FOR NEW CATEGORIES ---
+                // --- UPDATED ICON MAPPING FOR ALL CATEGORIES ---
                 let icon = 'tag'; // Default
                 
-                // Expenses
+                // Original Expenses
                 if(t.category === 'Food') icon = 'utensils';
                 if(t.category === 'Drink') icon = 'martini-glass';
                 if(t.category === 'Travel') icon = 'plane';
                 if(t.category === 'Utilities') icon = 'bolt';
                 if(t.category === 'Milk') icon = 'bottle-water';
+                
+                // New Expenses
+                if(t.category === 'Recharge') icon = 'mobile-screen';
+                if(t.category === 'Petrol') icon = 'gas-pump';
+                if(t.category === 'Medicine') icon = 'pills';
+                if(t.category === 'Medical') icon = 'notes-medical';
+                if(t.category === 'Daily Needs') icon = 'basket-shopping';
                 
                 // Income
                 if(t.category === 'Salary') icon = 'money-bill-wave';
